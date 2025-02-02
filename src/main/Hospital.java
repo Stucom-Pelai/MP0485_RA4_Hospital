@@ -1,144 +1,128 @@
 package main;
 
-import java.util.Arrays;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Hospital {
-
     public static void main(String[] args) {
-        // INPUT
-        //=====================================================================================
-        // fill data patient
-
-        // define number of patient
         Scanner sc = new Scanner(System.in);
-        System.out.println("how many patients?");
+        Random rand = new Random();
+
+        System.out.println("How many patients?");
         int numberPatients = sc.nextInt();
         sc.nextLine();
-        String[] names = new String[numberPatients];
-        double[] weights = new double[numberPatients];
-        int[] heights = new int[numberPatients];
 
-        // introduce data for each patient
-        String name;
-        double weight;
-        int height;
+        Patient[] patients = new Patient[numberPatients];
+
         for (int i = 0; i < numberPatients; i++) {
-            System.out.println("which name?");
-            name = sc.nextLine();
-            names[i] = name;
-            System.out.println("which weight?");
-            weight = sc.nextDouble();
-            sc.nextLine();
-            weights[i] = weight;
-            System.out.println("which height?");
-            height = sc.nextInt();
-            sc.nextLine();
-            heights[i] = height;
+            System.out.println("Enter name:");
+            String name = sc.nextLine();
+
+            System.out.println("Enter weight (kg):");
+            double weight = sc.nextDouble();
+
+            System.out.println("Enter height (cm):");
+            int height = sc.nextInt();
+            sc.nextLine(); // Consume newline
+
+            Room assignedRoom = new Room(rand.nextInt(100) + 1); // Assign a random room number (1-100)
+            patients[i] = new Patient(name, weight, height, assignedRoom);
         }
 
-        // calculate imc for all patients
-        double[] imcs = new double[numberPatients];
-        for (int i = 0; i < numberPatients; i++) {
-            double height2 = ((double) heights[i] / 100) * ((double) heights[i] / 100);
-
-            imcs[i] = (double) weights[i] / height2;
-        }
-
-        // BUSINESS LOGIC + OUTPUT
-        //=====================================================================================
-        // management menu
-        int option = 0;
+        int option;
         do {
-            System.out.println("Choose option:");
-            System.out.println("1. Show all patients with IMC:");
-            System.out.println("2. Show patient with highest IMC:");
-            System.out.println("3. Show patients with heigth more than ...:");
-            System.out.println("4. Check if lowest IMC patient is the shortest one ...:");
-            System.out.println("5. Exit program:");
+            System.out.println("\nChoose an option:");
+            System.out.println("1. Show all patients with IMC");
+            System.out.println("2. Show patient with highest IMC");
+            System.out.println("3. Show patients taller than a given height");
+            System.out.println("4. Check if lowest IMC patient is the shortest one");
+            System.out.println("5. Discharge a patient");
+            System.out.println("6. Exit program");
 
             option = sc.nextInt();
+            sc.nextLine(); // Consume newline
+
             switch (option) {
                 case 1:
-                    //show all patients with IMC
-                    double imc = 0.0;
-                    for (int i = 0; i < numberPatients; i++) {
-                        System.out.println("name is: " + names[i]);
-                        System.out.println("weight is: " + weights[i]);
-                        System.out.println("height is: " + weights[i]);
-                        System.out.println("imc is: " + imcs[i]);
-                        System.out.println("====================");
-
+                    for (Patient p : patients) {
+                        p.printPatientInfo();
                     }
                     break;
 
                 case 2:
-                    //show patient with highest IMC
-                    double imcMax = 0.0;
-                    int indexImcMax = 0;
-                    for (int i = 0; i < numberPatients; i++) {
-                        if (imcs[i] > imcMax) {
-                            imcMax = imcs[i];
-                            indexImcMax = i;
+                    Patient maxIMC = patients[0];
+                    for (Patient p : patients) {
+                        if (p.getIMC() > maxIMC.getIMC()) {
+                            maxIMC = p;
                         }
                     }
-                    System.out.println("patient with highest IMC is " + names[indexImcMax] + " with " + imcs[indexImcMax]);
+                    System.out.println("Patient with highest IMC: " + maxIMC.getName() + " (" + maxIMC.getIMC() + ")");
+                    break;
 
                 case 3:
-                    //filter by height
-                    int heightCriteria = 0;
-                    System.out.println("filter height?");
-                    heightCriteria = sc.nextInt();
+                    System.out.println("Enter height threshold (cm):");
+                    int heightCriteria = sc.nextInt();
                     sc.nextLine();
-                    System.out.println("patients taller than input height");
-                    for (int i = 0; i < numberPatients; i++) {
-                        if (heights[i] > heightCriteria);
-                        {
-                            System.out.println(names[i]);
+                    System.out.println("Patients taller than " + heightCriteria + " cm:");
+                    for (Patient p : patients) {
+                        if (p.getHeight() > heightCriteria) {
+                            System.out.println(p.getName());
                         }
                     }
                     break;
 
                 case 4:
-                    //check patient with lowest IMC and smallest is the same one
-                    // get lowest IMC
-                    double imcMin = 1000.0;
-                    int indexImcMin = 0;
-                    for (int i = 0; i < numberPatients; i++) {
-                        if (imcs[i] < imcMin) {
-                            imcMin = imcs[i];
-                            indexImcMin = i;
+                    Patient minIMC = patients[0];
+                    Patient shortest = patients[0];
+
+                    for (Patient p : patients) {
+                        if (p.getIMC() < minIMC.getIMC()) {
+                            minIMC = p;
+                        }
+                        if (p.getHeight() < shortest.getHeight()) {
+                            shortest = p;
                         }
                     }
 
-                    // get smallest
-                    double heightMin = 1000;
-                    int indexShortest = 0;
-                    for (int i = 0; i < numberPatients; i++) {
-                        if (heights[i] < heightMin) {
-                            heightMin = heights[i];
-                            indexShortest = i;
-                        }
-                    }
-
-                    // compare if same patient
-                    if (!names[indexImcMin].equals(names[indexShortest])) {
-                        System.out.println("shortest patient is the lowest IMC");
+                    if (minIMC == shortest) {
+                        System.out.println("The patient with the lowest IMC is also the shortest.");
                     } else {
-                        System.out.println("shortest patient is NOT the lowest IMC");
+                        System.out.println("The shortest patient is NOT the one with the lowest IMC.");
                     }
                     break;
 
                 case 5:
-                    //exit application
+                    System.out.println("Enter the name of the patient to discharge:");
+                    String dischargeName = sc.nextLine();
+                    boolean found = false;
+
+                    for (Patient p : patients) {
+                        if (p.getName().equalsIgnoreCase(dischargeName)) {
+                            if (!p.isHospitalized()) {
+                                System.out.println(dischargeName + " is already discharged.");
+                            } else {
+                                p.discharge();
+                                System.out.println(dischargeName + " has been discharged.");
+                            }
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found) {
+                        System.out.println("Patient not found.");
+                    }
+                    break;
+
+                case 6:
+                    System.out.println("Goodbye, doctor!");
                     break;
 
                 default:
-                    break;
+                    System.out.println("Invalid option, please try again.");
             }
+        } while (option != 6);
 
-        } while (option != 5);
-        System.out.println("goodbye doctor");
+        sc.close();
     }
-
 }
